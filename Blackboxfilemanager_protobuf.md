@@ -1,15 +1,15 @@
-# MPU MONA - 车载多模块平台系统
+# MPU-S32G  - 车载多模块平台系统
 
 ![Version](https://img.shields.io/badge/version-v2.0-blue)
 ![Platform](https://img.shields.io/badge/platform-AUTOSAR-green)
 ![License](https://img.shields.io/badge/license-Proprietary-red)
 
-MPU MONA 是一个基于 AUTOSAR Adaptive Platform 的车载多模块平台系统，集成了智能空调控制、电池热管理和黑盒文件管理三个核心模块。
+MPU  是一个基于 AUTOSAR Adaptive Platform 的车载多模块平台系统，集成了智能空调控制、电池热管理和黑盒文件管理三个核心模块。
 
 ## 🏗️ 系统架构
 
 ```
-MPU_MONA/
+MPU_/
 ├── intelligentaircondition/     # 智能空调控制模块
 │   └── impl/src/main.cpp        # 空调服务主程序
 ├── batterythermalmanagement/    # 电池热管理模块
