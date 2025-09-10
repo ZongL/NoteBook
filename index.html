@@ -1,0 +1,259 @@
+<!doctype html>
+<!--
+  Personal Knowledge Base - Markdown File Browser
+  
+  Instructions:
+  1. Replace 'YOUR_USERNAME' below with your actual GitHub username
+  2. Make sure your repository is public
+  3. Enable GitHub Pages in your repository settings
+  4. Your markdown files will be automatically discovered and displayed
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>My Knowledge Base</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<!-- 样式：用了 GitHub 官方 markdown 样式 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.css"/>
+<!-- 代码高亮 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism.css"/>
+<!-- KaTeX 数学公式 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0/dist/katex.min.css"/>
+<style>
+/* Simple layout: left sidebar 300px, right content responsive */
+body{display:flex;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;height:100vh}
+aside{width:300px;border-right:1px solid #ddd;overflow:auto;padding:1rem;background:#f6f8fa}
+main{flex:1;padding:2rem;overflow:auto}
+#search{width:100%;padding:.5rem;margin-bottom:.5rem;border:1px solid #d1d9e0;border-radius:6px}
+ul{list-style:none;padding-left:1rem;margin:0}
+li{cursor:pointer;padding:8px 4px;border-radius:4px;transition:background-color 0.2s}
+li:hover{background-color:#e1e5e9;color:#0969da}
+li.active{background-color:#dbeafe;color:#0969da;font-weight:bold}
+a{color:#0969da;text-decoration:none}
+.markdown-body{max-width:900px;margin:auto}
+.file-info{font-size:0.9em;color:#656d76;margin-bottom:1rem;padding:0.5rem;background:#f6f8fa;border-radius:6px}
+.back-to-top{position:fixed;bottom:20px;right:20px;background:#0969da;color:white;border:none;border-radius:50%;width:50px;height:50px;cursor:pointer;display:none}
+.back-to-top:hover{background:#0550ae}
+</style>
+</head>
+<body>
+<aside>
+  <input id="search" placeholder="Search files..." autocomplete="off"/>
+  <ul id="tree"></ul>
+</aside>
+
+<main>
+  <div id="content" class="markdown-body">Loading...</div>
+  <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+</main>
+
+<!-- 脚本 -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0/dist/contrib/auto-render.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+/* ========== 配置区 ========== */
+const OWNER   = 'ZongL';   // Replace with your GitHub username
+const REPO    = 'NoteBook';         // Your repository name
+const BRANCH  = 'main';               // 分支名，有的旧仓库是 master
+/* ============================ */
+
+const treeUl  = document.getElementById('tree');
+const search  = document.getElementById('search');
+const content = document.getElementById('content');
+
+/* 1. 递归获取仓库里所有文件（GitHub API 支持 100 条/页） */
+async function fetchAllFiles(path = '') {
+  const url = `https://api.github.com/repos/${OWNER}/${REPO}/git/trees/${BRANCH}?recursive=1`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return (data.tree || []).filter(i => i.type === 'blob' && i.path.endsWith('.md'));
+}
+
+/* 2. Render left sidebar directory */
+function renderTree(list) {
+  treeUl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  
+  // Sort files by name
+  list.sort((a, b) => a.path.localeCompare(b.path));
+  
+  list.forEach(item => {
+    const li = document.createElement('li');
+    
+    // Extract filename without extension
+    const fileName = item.path.split('/').pop().replace('.md', '');
+    li.textContent = fileName;
+    li.title = item.path; // Show full path on hover
+    li.dataset.path = item.path;
+    
+    li.onclick = () => {
+      // Remove active class from all items
+      [...treeUl.children].forEach(el => el.classList.remove('active'));
+      // Add active class to clicked item
+      li.classList.add('active');
+      renderMd(item.path);
+    };
+    
+    frag.appendChild(li);
+  });
+  treeUl.appendChild(frag);
+}
+
+/* 3. 拉取原始 md 文本并渲染 */
+async function renderMd(path) {
+  content.innerHTML = 'Loading...';
+  try {
+    const rawUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${path}`;
+    const response = await fetch(rawUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status}`);
+    }
+    const mdText = await response.text();
+    
+    /* marked configuration: Enable GitHub Flavored Markdown & syntax highlighting */
+    const html = marked.parse(mdText, {
+      gfm: true,
+      breaks: true,
+      highlight: (code, lang) => {
+        if (Prism.languages[lang]) {
+          return Prism.highlight(code, Prism.languages[lang], lang);
+        }
+        return code;
+      }
+    });
+    
+    content.innerHTML = html;
+    
+    /* Render mathematical formulas */
+    renderMathInElement(content, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+      ]
+    });
+    
+    /* Render Mermaid diagrams */
+    mermaid.init(undefined, content.querySelectorAll('.language-mermaid'));
+    
+    /* Update page title with current file */
+    document.title = `${path.split('/').pop().replace('.md', '')} - My Knowledge Base`;
+    
+    /* Add file info */
+    const fileInfo = document.createElement('div');
+    fileInfo.className = 'file-info';
+    fileInfo.innerHTML = `📄 <strong>${path}</strong> | Last updated: ${new Date().toLocaleDateString()}`;
+    content.insertBefore(fileInfo, content.firstChild);
+    
+    /* Show back to top button on scroll */
+    const backToTop = document.querySelector('.back-to-top');
+    window.onscroll = () => {
+      backToTop.style.display = window.pageYOffset > 300 ? 'block' : 'none';
+    };
+    
+    /* Restore scroll position if exists */
+    setTimeout(() => {
+      if (scrollPositions[path]) {
+        window.scrollTo(0, scrollPositions[path]);
+      }
+    }, 100);
+    
+  } catch (error) {
+    content.innerHTML = `<p style="color: red;">Error loading file: ${error.message}</p>`;
+  }
+}
+
+/* 4. Search filtering with improved functionality */
+search.addEventListener('input', e => {
+  const kw = e.target.value.toLowerCase();
+  let visibleCount = 0;
+  
+  [...treeUl.children].forEach(li => {
+    const fileName = li.textContent.toLowerCase();
+    const filePath = li.dataset.path.toLowerCase();
+    const isVisible = fileName.includes(kw) || filePath.includes(kw);
+    
+    li.style.display = isVisible ? '' : 'none';
+    if (isVisible) visibleCount++;
+  });
+  
+  // Show search results count
+  if (kw && visibleCount === 0) {
+    if (!document.getElementById('no-results')) {
+      const noResults = document.createElement('li');
+      noResults.id = 'no-results';
+      noResults.textContent = 'No files found';
+      noResults.style.color = '#999';
+      noResults.style.fontStyle = 'italic';
+      treeUl.appendChild(noResults);
+    }
+  } else {
+    const noResults = document.getElementById('no-results');
+    if (noResults) noResults.remove();
+  }
+});
+
+/* 5. Initialization with better error handling */
+fetchAllFiles().then(files => {
+  if (files.length === 0) {
+    content.innerHTML = '<p>No markdown files found in this repository.</p>';
+    return;
+  }
+  
+  renderTree(files);
+  
+  /* Open first file by default */
+  const first = treeUl.querySelector('li');
+  if (first) {
+    first.classList.add('active');
+    first.click();
+  }
+}).catch(error => {
+  content.innerHTML = `<p style="color: red;">Error loading files: ${error.message}</p><p>Please make sure:</p><ul><li>Your GitHub username and repository name are correct</li><li>Your repository is public</li><li>You have markdown files in your repository</li></ul>`;
+});
+
+/* 6. Keyboard shortcuts */
+document.addEventListener('keydown', e => {
+  // Ctrl+F or Cmd+F to focus search
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    search.focus();
+    search.select();
+  }
+  
+  // Arrow keys to navigate files
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const activeItem = treeUl.querySelector('.active');
+    if (activeItem) {
+      e.preventDefault();
+      const items = [...treeUl.children].filter(li => li.style.display !== 'none');
+      const currentIndex = items.indexOf(activeItem);
+      
+      let nextIndex;
+      if (e.key === 'ArrowDown') {
+        nextIndex = (currentIndex + 1) % items.length;
+      } else {
+        nextIndex = (currentIndex - 1 + items.length) % items.length;
+      }
+      
+      if (items[nextIndex]) {
+        items[nextIndex].click();
+      }
+    }
+  }
+});
+
+/* 7. Auto-save scroll position */
+let scrollPositions = {};
+window.addEventListener('beforeunload', () => {
+  const activeFile = treeUl.querySelector('.active')?.dataset.path;
+  if (activeFile) {
+    scrollPositions[activeFile] = window.pageYOffset;
+  }
+});
+</script>
+</body>
+</html>
