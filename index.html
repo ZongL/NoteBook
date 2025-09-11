@@ -25,10 +25,12 @@ body{display:flex;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe U
 aside{width:300px;border-right:1px solid #ddd;overflow:auto;padding:1rem;background:#f6f8fa}
 main{flex:1;padding:2rem;overflow:auto}
 #search{width:80%;padding:.5rem;margin-bottom:.5rem;border:1px solid #d1d9e0;border-radius:6px}
-ul{list-style:none;padding-left:1rem;margin:0}
-li{cursor:pointer;padding:8px 4px;border-radius:4px;transition:background-color 0.2s}
-li:hover{background-color:#e1e5e9;color:#0969da}
-li.active{background-color:#dbeafe;color:#0969da;font-weight:bold}
+/* 侧边栏文件列表容器样式 */
+aside ul{list-style:none;padding-left:1rem;margin:0}
+/* 侧边栏文件列表样式 */
+aside li{cursor:pointer;padding:4px 4px;border-radius:4px;transition:background-color 0.2s;line-height:1.2}
+aside li:hover{background-color:#e1e5e9;color:#0969da}
+aside li.active{background-color:#dbeafe;color:#0969da;font-weight:bold}
 a{color:#0969da;text-decoration:none}
 .markdown-body{max-width:900px;margin:auto}
 .file-info{font-size:0.9em;color:#656d76;margin-bottom:1rem;padding:0.5rem;background:#f6f8fa;border-radius:6px}
