@@ -11,7 +11,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>My Knowledge Base</title>
+<title>ZongL's NoteBook</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <!-- 样式：用了 GitHub 官方 markdown 样式 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.css"/>
@@ -140,7 +140,7 @@ async function renderMd(path) {
     mermaid.init(undefined, content.querySelectorAll('.language-mermaid'));
     
     /* Update page title with current file */
-    document.title = `${path.split('/').pop().replace('.md', '')} - My Knowledge Base`;
+    document.title = `${path.split('/').pop().replace('.md', '')} - ZongL's NoteBook`;
     
     /* Add file info */
     const fileInfo = document.createElement('div');
