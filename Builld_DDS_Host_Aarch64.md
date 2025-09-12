@@ -209,6 +209,11 @@ Once deployed to your Cortex-A53 system, you can test with the provided examples
 # Test with performance tool
 ./ddsperf ping
 ```
+Study the examples in repo, use below command to build the examples, for Windows End.
+```
+cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="../install" -DBUILD_EXAMPLES=ON ..
+```
+
 
 ## Next Steps
 
