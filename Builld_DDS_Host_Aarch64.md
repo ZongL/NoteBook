@@ -213,7 +213,10 @@ Study the examples in repo, use below command to build the examples, for Windows
 ```
 cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX="../install" -DBUILD_EXAMPLES=ON ..
 ```
-
+## add build directory
+```
+cmake --install . --prefix ../install-aarch64
+```
 
 ## Next Steps
 
