@@ -370,3 +370,11 @@ continue
 ---
 
 本指南为掌握CycloneDDS开发提供了从基本概念到高级生产部署的全面基础。理论知识和实践实现的结合确保您能够为实际应用构建强大的分布式通信系统。
+
+---
+Prompt：
+我正在写一个cycloneDDS从入门到精通的文章，请帮我创建成dds-learn.md，主要包括以下内容：
+1、简介：要实现的目的是基于cyclonedds，开发windows端的上位机程序，以及基于cortex-A53的板端程序，并实现数据传输。这里的传输将使用cyclonedds提供的roundtrip示例程序（ping-pong）。
+2.框架：展示项目框架mermaid：基于cyclonedds，构建windows lib 比如dll等，构建板端 lib 比如so等，将dll so等库文件准备好放入后续的新工程dds-test中，并使用cmake进行编译 生成上位机exe程序和板端elf程序。
+3.具体：你可以从techyou.md中查看具体的编译过程，编译完成后，生成install-aarch64 以及install-host两个存放库的文件夹
+4.以上都是在git clone的cyclonedds项目下进行操作， 我会再一个新的工程dds-test中完成可执行程序的生成。你要从tddstest.md 中查看dds-test这个工程的主要工作。
