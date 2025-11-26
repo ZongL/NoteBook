@@ -37,26 +37,38 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TB
-  A[ActivateTask/SetEvent/ReleaseResource/Schedule/ChainTask/TerminateTask] --> B[Os_Dispatch(op)]
-  B --> C{op -> 调整当前任务状态}
-  C --> D[更新当前任务为 READY/WAITING/SUSPENDED]
-  D --> E[Os_TaskGetTop() 查找就绪队列最高优先]
-  E --> F{top != curr?}
-  F -- yes --> G[Os_ResourceReleaseInternal(); Os_TaskSwapContext(curr, top)]
-  F -- no  --> H[继续当前任务 / 重新设置栈并开始Basic任务]
 
-  subgraph 中断/ISR
-    I[ISR Entry] --> J[Os_Isr(): 保存被打断 task 状态 -> 设置 preempted 为 READY]
-    J --> K[执行 ISR2]
-    K --> L[ISR exit: 减少 intNestCnt]
-    L --> M{intNestCnt==0?}
-    M -- yes --> N[Compare Os_TaskGetTop 与 curr 优先级]
-    N -- higher --> O[触发上下文切换（PendSV 或 Os_TaskSwapContextTo）]
-    N -- no --> P[恢复被打断任务为 RUNNING]
-  end
+    %% 主流程：任务状态变更与调度
+    subgraph 任务操作与调度
+        A["操作触发<br/>(ActivateTask/SetEvent/ReleaseResource/<br/>Schedule/ChainTask/TerminateTask)"] --> B["Os_Dispatch(op)"]
+        B --> C{"根据 op 调整任务状态?"}
+        C -->|是| D["更新当前任务状态<br/>(READY/WAITING/SUSPENDED)"]
+        C -->|否| H["继续执行当前任务"]
+        
+        D --> E["Os_TaskGetTop()<br/>查找就绪队列最高优先级任务"]
+        E --> F{"最高优先级任务(top) != 当前任务(curr)?"}
+        F -->|是| G["Os_ResourceReleaseInternal()<br/>Os_TaskSwapContext(curr, top)"]
+        F -->|否| H
+    end
 
-  G --> Z[新任务执行]
-  O --> Z
+    %% 中断处理流程
+    subgraph 中断/ISR处理
+        I["ISR Entry<br/>中断入口"] --> J["Os_Isr()<br/>保存被打断任务状态<br/>设置 preempted 为 READY"]
+        J --> K["执行 ISR 业务逻辑"]
+        K --> L["ISR Exit<br/>减少 intNestCnt"]
+        L --> M{"intNestCnt == 0?"}
+        M -->|是| N["Os_TaskGetTop()<br/>获取最高优先级就绪任务"]
+        N --> O{"top 优先级 > curr 优先级?"}
+        O -->|是| P["触发上下文切换<br/>(PendSV 或 Os_TaskSwapContextTo)"]
+        O -->|否| Q["恢复被打断任务为 RUNNING"]
+        M -->|否| R["直接返回被打断任务"]
+    end
+
+    %% 上下文切换后统一指向新任务执行
+    G --> S["新任务执行"]
+    P --> S
+    Q --> S
+    R --> S
 ```
 
 说明要点：
