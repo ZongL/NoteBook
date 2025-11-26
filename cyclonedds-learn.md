@@ -204,13 +204,13 @@ DDS_test/
 - 创建DDS参与者、主题、写入器和读取器
 - 实现基本的DDS通信功能
 - 针对嵌入式Linux系统优化
-- IP地址：172.16.12.102
+- IP地址：192.168.12.102
 
 **Windows上位机应用程序（`test/main.c`）**：
 - 创建DDS参与者、主题、写入器和读取器
 - 循环发送周期性消息（0-15计数器，每秒递增）
 - 监听来自目标板的消息
-- IP地址：172.16.12.200
+- IP地址：192.168.12.200
 - 主题名称："DDSTestTopic"
 
 #### 通信协议
@@ -264,7 +264,7 @@ gdbserver :1234 ./ddstest.out
 ```bash
 # 使用交叉GDB连接
 aarch64-none-linux-gnu-gdb
-target remote 172.16.12.102:1234
+target remote 192.168.12.102:1234
 set solib-search-path ../install-aarch64/lib
 continue
 ```
@@ -281,7 +281,7 @@ continue
 
 **通信问题**：
 - 验证防火墙设置允许DDS端口
-- 检查172.16.12.200和172.16.12.102之间的网络连接
+- 检查192.168.12.200和192.168.12.102之间的网络连接
 - 确保两个应用程序使用相同的域ID和主题名称
 - 验证QoS策略兼容性
 
@@ -370,3 +370,11 @@ continue
 ---
 
 本指南为掌握CycloneDDS开发提供了从基本概念到高级生产部署的全面基础。理论知识和实践实现的结合确保您能够为实际应用构建强大的分布式通信系统。
+
+---
+Prompt：
+我正在写一个cycloneDDS从入门到精通的文章，请帮我创建成dds-learn.md，主要包括以下内容：
+1、简介：要实现的目的是基于cyclonedds，开发windows端的上位机程序，以及基于cortex-A53的板端程序，并实现数据传输。这里的传输将使用cyclonedds提供的roundtrip示例程序（ping-pong）。
+2.框架：展示项目框架mermaid：基于cyclonedds，构建windows lib 比如dll等，构建板端 lib 比如so等，将dll so等库文件准备好放入后续的新工程dds-test中，并使用cmake进行编译 生成上位机exe程序和板端elf程序。
+3.具体：你可以从techyou.md中查看具体的编译过程，编译完成后，生成install-aarch64 以及install-host两个存放库的文件夹
+4.以上都是在git clone的cyclonedds项目下进行操作， 我会再一个新的工程dds-test中完成可执行程序的生成。你要从tddstest.md 中查看dds-test这个工程的主要工作。
